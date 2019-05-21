@@ -3,34 +3,30 @@ require "byebug"
 class LogParser
   def initialize(path)
     @log = File.readlines(path)
+    @pages = @log.map { |line| line.strip.gsub(/\s.+/, "") }.group_by(&:itself).transform_values(&:count)
   end
 
   def allpageviews
-    # @log.each do |line|
-    #   line = line.gsub!(/\s.+/, "")
-    #   # byebug
-    # end
-    output = @log.map { |line| line.strip.gsub(/\s.+/, "") }.group_by(&:itself).transform_values(&:count)
-    output = Hash[output.sort_by { |key, value| value }.reverse!]
-    byebug
+    output = Hash[@pages.sort_by { |key, value| value }.reverse!]
     puts "Total Views"
     output.each do |line|
-      # byebug
       puts "#{line[0]}, #{line[1]} views"
     end
   end
 
   def uniqueviews
-    output = @log.group_by(&:itself).transform_values(&:count)
-    output = Hash[output.sort_by { |key, value| value }.reverse!]
-    byebug
-    puts "Unique Views"
-    output.each do |line|
-      # byebug
-      puts "#{line[0].strip}, #{line[1]} views"
+    arry = []
+    @pages.each_key do |key|
+      @log.each do |line|
+        if line.strip.gsub(/\s.+/, "") == key
+          arry.push (line)
+        end
+      end
+      puts "#{key} has #{arry.count} unique visits"
     end
   end
 
   parser = LogParser.new(*ARGV)
+  parser.allpageviews
   parser.uniqueviews
 end
